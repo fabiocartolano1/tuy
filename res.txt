@@ -1,0 +1,15 @@
+Ce qu'on A :
+
+Info	Source dans le DXF	Ce qu'on en tire
+Type de réseau	Calques (138 calques)	Eau froide / EU / EV / etc.
+Matière	Calques (convention MC/PVC)	MC ou PVC par réseau
+Longueur des tuyaux	LINE, LWPOLYLINE, POLYLINE, ARC	Mètres par réseau
+Coudes	ARC + changements d'angle sur POLYLINE	Nombre par réseau
+Épaisseur de trait	lineweight sur chaque entité (0.20mm / 0.35mm)	Petit/grand diamètre (grossier)
+Cercles en coupe	CIRCLE — rayon = demi-diamètre réel	Ø exact à l'emplacement du cercle
+Équipements	INSERT (ballon ECS, siphon, descente...)	Liste du matériel
+Quelques textes	TEXT : pentes, noms d'appareils, 3-4 annotations de Ø	Infos ponctuelles
+Ce qu'on N'A PAS :
+
+Diamètre sur chaque segment de tuyau
+XDATA, attributs de blocs, cotes de diamètre

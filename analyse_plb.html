@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Analyse Plomberie DXF</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, -apple-system, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+  main { max-width: 1100px; margin: 0 auto; padding: 32px 16px; }
+
+  h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+  .subtitle { color: #666; font-size: .9rem; margin-bottom: 28px; }
+
+  /* Upload */
+  .drop-zone {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; border: 2px dashed #aab; border-radius: 12px; padding: 40px 20px;
+    background: #fff; cursor: pointer; transition: border-color .2s, background .2s;
+  }
+  .drop-zone:hover, .drop-zone.over { border-color: #3b82f6; background: #eff6ff; }
+  .drop-zone input { display: none; }
+  .drop-icon { font-size: 2.5rem; }
+  .drop-text { font-size: 1rem; font-weight: 600; }
+  .drop-sub { font-size: .8rem; color: #888; }
+
+  .options { display: flex; gap: 20px; align-items: center; margin-top: 14px; flex-wrap: wrap; }
+  .options label { font-size: .85rem; color: #444; display: flex; align-items: center; gap: 6px; }
+  select { border: 1px solid #ccc; border-radius: 6px; padding: 4px 8px; font-size: .85rem; }
+
+  /* Status */
+  .status { margin-top: 18px; padding: 12px 16px; border-radius: 8px; font-size: .9rem; }
+  .status.info  { background: #dbeafe; color: #1e40af; }
+  .status.error { background: #fee2e2; color: #991b1b; }
+  .status.ok    { background: #d1fae5; color: #065f46; }
+  .hidden { display: none; }
+
+  /* Summary */
+  .summary { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-top: 28px; }
+  .card { background: #fff; border-radius: 10px; padding: 16px; box-shadow: 0 1px 4px #0001; border-left: 4px solid #ccc; }
+  .card .label { font-size: .75rem; color: #666; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+  .card .value { font-size: 1.6rem; font-weight: 700; }
+  .card .unit  { font-size: .75rem; color: #888; }
+
+  /* Sections */
+  .section { background: #fff; border-radius: 12px; box-shadow: 0 1px 4px #0001; margin-top: 24px; overflow: hidden; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #eee; }
+  .section-head h2 { font-size: 1rem; font-weight: 600; }
+
+  button.export {
+    background: #3b82f6; color: #fff; border: none; border-radius: 6px;
+    padding: 6px 14px; font-size: .8rem; cursor: pointer; transition: background .15s;
+  }
+  button.export:hover { background: #2563eb; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+  th { background: #f8f9fa; text-align: left; padding: 10px 14px; font-weight: 600; color: #444; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; border-bottom: 2px solid #eee; }
+  td { padding: 9px 14px; border-bottom: 1px solid #f0f0f0; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbff; }
+  tfoot td { font-weight: 700; background: #f8f9fa; border-top: 2px solid #eee; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 7px; flex-shrink: 0; }
+  .type-cell { display: flex; align-items: center; }
+  .diams { display: flex; gap: 4px; flex-wrap: wrap; }
+  .diam-badge { background: #f0f0f0; border-radius: 4px; padding: 2px 7px; font-size: .78rem; font-weight: 600; color: #333; }
+  .warn { font-size: .75rem; color: #92400e; background: #fef3c7; border-radius: 6px; padding: 8px 14px; margin: 0 20px 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Analyse Plomberie — DXF</h1>
+  <p class="subtitle">Déposer un fichier DXF pour calculer les longueurs de tuyaux et les coudes</p>
+
+  <label class="drop-zone" id="dropZone">
+    <input type="file" id="fileInput" accept=".dxf">
+    <span class="drop-icon">📂</span>
+    <span class="drop-text">Glisser le fichier DXF ici ou cliquer</span>
+    <span class="drop-sub">Format .dxf — converti depuis DWG via ODA File Converter</span>
+  </label>
+
+  <div class="options">
+    <label>Encodage :
+      <select id="encoding">
+        <option value="windows-1252" selected>Windows-1252 (AutoCAD / ODA)</option>
+        <option value="utf-8">UTF-8</option>
+      </select>
+    </label>
+    <label>Seuil coudes :
+      <select id="bendThreshold">
+        <option value="15">15°</option>
+        <option value="20" selected>20° (défaut)</option>
+        <option value="30">30°</option>
+        <option value="45">45°</option>
+      </select>
+    </label>
+  </div>
+
+  <div id="status" class="status hidden"></div>
+
+  <div id="results" class="hidden">
+    <div class="summary" id="summaryCards"></div>
+
+    <div class="section" id="sectionLengths">
+      <div class="section-head">
+        <h2>Longueurs de tuyauterie</h2>
+        <button class="export" onclick="exportCSV('lengths')">⬇ CSV</button>
+      </div>
+      <table>
+        <thead><tr><th>Type de tuyau</th><th class="num">Longueur (m)</th><th class="num">Entités</th></tr></thead>
+        <tbody id="lengthsBody"></tbody>
+        <tfoot id="lengthsFoot"></tfoot>
+      </table>
+    </div>
+
+    <div class="section" id="sectionBends">
+      <div class="section-head">
+        <h2>Coudes &amp; diamètres</h2>
+        <button class="export" onclick="exportCSV('bends')">⬇ CSV</button>
+      </div>
+      <p class="warn" id="bendWarn"></p>
+      <table>
+        <thead><tr><th>Type de tuyau</th><th class="num">ARCs</th><th class="num">Poly.</th><th class="num">Total</th><th>Diamètres (mm)</th></tr></thead>
+        <tbody id="bendsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+// ─── Configuration calques PLB ────────────────────────────────────────────────
+const PLB_LAYERS = {
+  'CMT-PLB-EF-U':                              'Eau froide',
+  'CMT_PLMB_EAU_FROIDE':                       'Eau froide',
+  'CMT_PLMB_ROBINETTERIE_EAU_FROIDE':          'Eau froide',
+  'CMT-PLB-EFSG-U':                            'Eau froide sans gel',
+  'CMT_PLMB_EAU_FROIDE_ADOUCIE':               'Eau froide adoucie',
+  'CMT_PLMB_ROBINETTERIE_EAU_FROIDE_ADOUCIE':  'Eau froide adoucie',
+  'CMT-PLB-EC-U':                              'Eau chaude sanitaire',
+  'CMT_PLMB_EAU_CHAUDE_SANITAIRE':             'Eau chaude sanitaire',
+  'CMT_PLMB_ROBINETTERIE_EAU_CHAUDE_SANITAITE':'Eau chaude sanitaire',
+  'CMT-PLB-REC-U':                             'Bouclage sanitaire',
+  'CMT_PLMB_BOUCLAGE':                         'Bouclage sanitaire',
+  'CMT_PLMB_ROBINETTERIE_BOUCLAGE':            'Bouclage sanitaire',
+  'CMT-PLB-EU':                                'Eaux usées',
+  'CMT-PLB-EV':                                'Eaux vannes',
+  'CMT-PLB-EV-SOUS DALLAGE':                   'Eaux vannes (sous dallage)',
+  'CMT-CONDENSATS':                            'Condensats climatisation',
+  'CMT-CVC-CONDENSATS':                        'Condensats climatisation',
+  'CMT-PLB-VP':                                'Ventilation primaire',
+  'CMT_CVC_EAU_CHAUDE_PRIMAIRE_ALLER':         'ECS primaire aller',
+  'CMT_CVC_EAU_CHAUDE_PRIMAIRE_RETOUR':        'ECS primaire retour',
+};
+
+const TYPE_COLORS = {
+  'Eau froide':                '#1565C0',
+  'Eau froide sans gel':       '#42A5F5',
+  'Eau froide adoucie':        '#90CAF9',
+  'Eau chaude sanitaire':      '#C62828',
+  'Bouclage sanitaire':        '#E65100',
+  'Eaux usées':                '#2E7D32',
+  'Eaux vannes':               '#558B2F',
+  'Eaux vannes (sous dallage)':'#8D6E63',
+  'Condensats climatisation':  '#6A1B9A',
+  'Ventilation primaire':      '#00695C',
+  'ECS primaire aller':        '#B71C1C',
+  'ECS primaire retour':       '#880E4F',
+};
+
+// ─── Géométrie ────────────────────────────────────────────────────────────────
+function dist3(ax,ay,az, bx,by,bz){
+  const dx=bx-ax, dy=by-ay, dz=bz-az;
+  return Math.sqrt(dx*dx+dy*dy+dz*dz);
+}
+function dist2(ax,ay,bx,by){ return Math.sqrt((bx-ax)**2+(by-ay)**2); }
+
+function angleDev(v1x,v1y, v2x,v2y){
+  const n1=Math.sqrt(v1x*v1x+v1y*v1y), n2=Math.sqrt(v2x*v2x+v2y*v2y);
+  if(n1<1e-9||n2<1e-9) return 0;
+  const cos=Math.max(-1,Math.min(1,(v1x*v2x+v1y*v2y)/(n1*n2)));
+  return 180 - Math.acos(cos)*180/Math.PI;
+}
+
+// ─── Parseur DXF ─────────────────────────────────────────────────────────────
+function parseDXF(text){
+  const lines = text.split(/\r?\n/);
+  const pairs = [];
+  for(let i=0; i+1<lines.length; i+=2){
+    const c = lines[i].trim(), v = lines[i+1].trim();
+    if(c!=='') pairs.push([c,v]);
+  }
+
+  // $INSUNITS dans le header
+  let insunits = 0;
+  for(let i=0;i<pairs.length-1;i++){
+    if(pairs[i][0]==='9' && pairs[i][1]==='$INSUNITS'){
+      insunits = parseInt(pairs[i+1][1])||0; break;
+    }
+  }
+
+  // Facteur de conversion vers mètres
+  const unitFactor = {4:0.001, 5:0.01, 6:1, 7:1000, 2:0.0254, 1:0.0254}[insunits] || 1;
+
+  // Trouver la section ENTITIES
+  let start=-1, end=pairs.length;
+  for(let i=0;i<pairs.length;i++){
+    if(pairs[i][0]==='0' && pairs[i][1]==='SECTION' && i+1<pairs.length
+       && pairs[i+1][0]==='2' && pairs[i+1][1]==='ENTITIES'){ start=i+2; }
+    if(start>=0 && pairs[i][0]==='0' && pairs[i][1]==='ENDSEC'){ end=i; break; }
+  }
+  if(start<0) return {insunits, unitFactor, entities:[]};
+
+  // Lire entités brutes
+  const raw=[];
+  let cur=null;
+  for(let i=start;i<end;i++){
+    const [c,v]=pairs[i];
+    if(c==='0'){
+      if(cur) raw.push(cur);
+      cur={type:v, layer:'0', p:[]};
+    } else if(cur){
+      if(c==='8') cur.layer=v;
+      else cur.p.push([c,v]);
+    }
+  }
+  if(cur) raw.push(cur);
+
+  // Post-traitement POLYLINE : fusionner les VERTEX
+  const entities=[];
+  let i=0;
+  while(i<raw.length){
+    const e=raw[i];
+    if(e.type==='POLYLINE'){
+      const poly={type:'POLYLINE', layer:e.layer, p:e.p, vertices:[]};
+      let flags=0;
+      for(const [c,v] of e.p) if(c==='70') flags=parseInt(v)||0;
+      poly.closed=(flags&1)!==0;
+      i++;
+      while(i<raw.length && raw[i].type!=='SEQEND'){
+        if(raw[i].type==='VERTEX'){
+          let vx=0,vy=0,vz=0;
+          for(const [c,v] of raw[i].p){
+            if(c==='10') vx=parseFloat(v)||0;
+            else if(c==='20') vy=parseFloat(v)||0;
+            else if(c==='30') vz=parseFloat(v)||0;
+          }
+          poly.vertices.push([vx,vy,vz]);
+        }
+        i++;
+      }
+      entities.push(poly);
+    } else if(e.type!=='VERTEX' && e.type!=='SEQEND'){
+      entities.push(e);
+    }
+    i++;
+  }
+
+  return {insunits, unitFactor, entities};
+}
+
+// ─── Calcul par entité ────────────────────────────────────────────────────────
+function calcLine(e){
+  let x0=0,y0=0,z0=0,x1=0,y1=0,z1=0;
+  for(const [c,v] of e.p){
+    if(c==='10') x0=parseFloat(v)||0;
+    else if(c==='20') y0=parseFloat(v)||0;
+    else if(c==='30') z0=parseFloat(v)||0;
+    else if(c==='11') x1=parseFloat(v)||0;
+    else if(c==='21') y1=parseFloat(v)||0;
+    else if(c==='31') z1=parseFloat(v)||0;
+  }
+  return {length: dist3(x0,y0,z0,x1,y1,z1), bends:0};
+}
+
+function calcArc(e){
+  let r=0, a0=0, a1=0;
+  for(const [c,v] of e.p){
+    if(c==='40') r=parseFloat(v)||0;
+    else if(c==='50') a0=(parseFloat(v)||0)*Math.PI/180;
+    else if(c==='51') a1=(parseFloat(v)||0)*Math.PI/180;
+  }
+  if(a1<a0) a1+=2*Math.PI;
+  return {length: r*(a1-a0), bends:1};  // chaque ARC = 1 coude
+}
+
+function calcLWPolyline(e, threshold){
+  let closed=false;
+  const pts=[];
+  let px=null;
+  for(const [c,v] of e.p){
+    if(c==='70') closed=(parseInt(v)&1)!==0;
+    else if(c==='10') px=parseFloat(v)||0;
+    else if(c==='20' && px!==null){ pts.push([px,parseFloat(v)||0]); px=null; }
+  }
+  let len=0, bends=0;
+  for(let i=0;i<pts.length-1;i++) len+=dist2(pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1]);
+  if(closed && pts.length>1) len+=dist2(pts[pts.length-1][0],pts[pts.length-1][1],pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length-1;i++){
+    const v1x=pts[i][0]-pts[i-1][0], v1y=pts[i][1]-pts[i-1][1];
+    const v2x=pts[i+1][0]-pts[i][0], v2y=pts[i+1][1]-pts[i][1];
+    if(angleDev(v1x,v1y,v2x,v2y)>threshold) bends++;
+  }
+  return {length:len, bends};
+}
+
+function calcPolyline(e, threshold){
+  const pts=e.vertices||[];
+  let len=0, bends=0;
+  for(let i=0;i<pts.length-1;i++) len+=dist3(pts[i][0],pts[i][1],pts[i][2],pts[i+1][0],pts[i+1][1],pts[i+1][2]);
+  if(e.closed && pts.length>1){
+    const a=pts[pts.length-1], b=pts[0];
+    len+=dist3(a[0],a[1],a[2],b[0],b[1],b[2]);
+  }
+  for(let i=1;i<pts.length-1;i++){
+    const v1x=pts[i][0]-pts[i-1][0], v1y=pts[i][1]-pts[i-1][1];
+    const v2x=pts[i+1][0]-pts[i][0], v2y=pts[i+1][1]-pts[i][1];
+    if(angleDev(v1x,v1y,v2x,v2y)>threshold) bends++;
+  }
+  return {length:len, bends};
+}
+
+function extractText(e){
+  let t='';
+  for(const [c,v] of e.p){
+    if(c==='1'||c==='3') t+=v;
+  }
+  return t;
+}
+
+// ─── Analyse principale ───────────────────────────────────────────────────────
+function analyse(text){
+  const threshold = parseInt(document.getElementById('bendThreshold').value)||20;
+  const {insunits, unitFactor, entities} = parseDXF(text);
+
+  const lengths  = {};  // type → {length, count}
+  const bendsArc = {};  // type → int
+  const bendsPoly= {};  // type → int
+  const diams    = {};  // type → Set<int>
+
+  const PLB_KEYS = new Set(Object.keys(PLB_LAYERS));
+
+  for(const e of entities){
+    const layer = e.layer;
+    if(!PLB_KEYS.has(layer)) continue;
+    const type = PLB_LAYERS[layer];
+
+    if(!lengths[type])   lengths[type]  = {length:0, count:0};
+    if(!bendsArc[type])  bendsArc[type] = 0;
+    if(!bendsPoly[type]) bendsPoly[type]= 0;
+    if(!diams[type])     diams[type]    = new Set();
+
+    let res = null;
+    if(e.type==='LINE')         res = calcLine(e);
+    else if(e.type==='ARC')     res = calcArc(e);
+    else if(e.type==='LWPOLYLINE') res = calcLWPolyline(e, threshold);
+    else if(e.type==='POLYLINE')   res = calcPolyline(e, threshold);
+    else if(e.type==='TEXT'||e.type==='MTEXT'){
+      const txt = extractText(e);
+      // ø = U+00F8, aussi matcher DN
+      const m = txt.matchAll(/(?:DN\s*|ø\s*)(\d+)/gi);
+      for(const hit of m) diams[type].add(parseInt(hit[1]));
+    }
+
+    if(res){
+      lengths[type].length += res.length * unitFactor;
+      lengths[type].count  += 1;
+      if(e.type==='ARC')         bendsArc[type]  += res.bends;
+      else if(res.bends)         bendsPoly[type] += res.bends;
+    }
+  }
+
+  return {insunits, unitFactor, lengths, bendsArc, bendsPoly, diams};
+}
+
+// ─── Rendu ────────────────────────────────────────────────────────────────────
+let lastResult = null;
+
+function colorFor(type){ return TYPE_COLORS[type]||'#999'; }
+
+function dot(type){ return `<span class="dot" style="background:${colorFor(type)}"></span>`; }
+
+function renderResults(r){
+  lastResult = r;
+  const {lengths, bendsArc, bendsPoly, diams, insunits, unitFactor} = r;
+  const allTypes = [...new Set([...Object.keys(lengths),...Object.keys(bendsArc)])].sort();
+
+  // Summary cards
+  let totalLen=0, totalBends=0, typeCount=0;
+  for(const t of allTypes){
+    if(lengths[t]) totalLen += lengths[t].length;
+    totalBends += (bendsArc[t]||0)+(bendsPoly[t]||0);
+    typeCount++;
+  }
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="card" style="border-color:#3b82f6">
+      <div class="label">Total tuyaux</div>
+      <div class="value">${totalLen.toFixed(0)}</div>
+      <div class="unit">mètres</div>
+    </div>
+    <div class="card" style="border-color:#f59e0b">
+      <div class="label">Total coudes</div>
+      <div class="value">${totalBends}</div>
+      <div class="unit">pièces</div>
+    </div>
+    <div class="card" style="border-color:#10b981">
+      <div class="label">Réseaux</div>
+      <div class="value">${typeCount}</div>
+      <div class="unit">types</div>
+    </div>
+    <div class="card" style="border-color:#8b5cf6">
+      <div class="label">Unités DXF</div>
+      <div class="value" style="font-size:1rem">${unitLabel(insunits)}</div>
+      <div class="unit">$INSUNITS = ${insunits}</div>
+    </div>
+  `;
+
+  // Table longueurs
+  let lRows='', lTotal=0;
+  for(const t of allTypes){
+    if(!lengths[t]) continue;
+    const {length,count} = lengths[t];
+    lTotal+=length;
+    lRows+=`<tr>
+      <td><div class="type-cell">${dot(t)}${t}</div></td>
+      <td class="num">${length.toFixed(2)}</td>
+      <td class="num">${count}</td>
+    </tr>`;
+  }
+  document.getElementById('lengthsBody').innerHTML = lRows;
+  document.getElementById('lengthsFoot').innerHTML =
+    `<tr><td><strong>TOTAL</strong></td><td class="num">${lTotal.toFixed(2)}</td><td></td></tr>`;
+
+  // Table coudes
+  let bRows='';
+  for(const t of allTypes){
+    const arc = bendsArc[t]||0, poly = bendsPoly[t]||0;
+    const total = arc+poly;
+    const dset = diams[t]||new Set();
+    const dbadges = [...dset].sort((a,b)=>a-b).map(d=>`<span class="diam-badge">${d}</span>`).join('');
+    bRows+=`<tr>
+      <td><div class="type-cell">${dot(t)}${t}</div></td>
+      <td class="num">${arc}</td>
+      <td class="num">${poly}</td>
+      <td class="num"><strong>${total}</strong></td>
+      <td><div class="diams">${dbadges||'—'}</div></td>
+    </tr>`;
+  }
+  document.getElementById('bendsBody').innerHTML = bRows;
+
+  const bendWarn = document.getElementById('bendWarn');
+  bendWarn.style.display = 'block';
+  bendWarn.textContent = 'Note : les coudes "Poly." comptent les changements de direction > seuil dans les polylignes. '
+    +'Pour EU/EV les polylignes ont de nombreux vertices — ce chiffre est un maximum.';
+
+  document.getElementById('results').classList.remove('hidden');
+}
+
+function unitLabel(u){
+  return {0:'Indéf.',1:'Pouces',2:'Pieds',4:'mm',5:'cm',6:'Mètres',7:'km'}[u]||`Code ${u}`;
+}
+
+// ─── Export CSV ───────────────────────────────────────────────────────────────
+function exportCSV(which){
+  if(!lastResult) return;
+  const {lengths,bendsArc,bendsPoly,diams} = lastResult;
+  const allTypes = [...new Set([...Object.keys(lengths),...Object.keys(bendsArc)])].sort();
+  let csv='', filename='';
+
+  if(which==='lengths'){
+    filename='longueurs_PLB.csv';
+    csv='Type de tuyau;Longueur (m);Entites\n';
+    let tot=0;
+    for(const t of allTypes){
+      if(!lengths[t]) continue;
+      csv+=`${t};${lengths[t].length.toFixed(2)};${lengths[t].count}\n`;
+      tot+=lengths[t].length;
+    }
+    csv+=`TOTAL;${tot.toFixed(2)};\n`;
+  } else {
+    filename='coudes_PLB.csv';
+    csv='Type de tuyau;Coudes ARCs;Coudes poly;Total coudes;Diametres (mm)\n';
+    for(const t of allTypes){
+      const arc=bendsArc[t]||0, poly=bendsPoly[t]||0;
+      const dset = diams[t]||new Set();
+      const dstr=[...dset].sort((a,b)=>a-b).join(' / ');
+      csv+=`${t};${arc};${poly};${arc+poly};"${dstr}"\n`;
+    }
+  }
+
+  const bom='﻿';
+  const blob=new Blob([bom+csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=filename;
+  a.click();
+}
+
+// ─── UI / Événements ─────────────────────────────────────────────────────────
+function setStatus(msg, cls='info'){
+  const el=document.getElementById('status');
+  el.textContent=msg;
+  el.className='status '+cls;
+  el.classList.remove('hidden');
+}
+
+async function handleFile(file){
+  if(!file||!file.name.endsWith('.dxf')){
+    setStatus('Veuillez sélectionner un fichier .dxf','error'); return;
+  }
+  setStatus(`Lecture de ${file.name} (${(file.size/1e6).toFixed(1)} Mo)…`,'info');
+  document.getElementById('results').classList.add('hidden');
+
+  try {
+    const encoding = document.getElementById('encoding').value;
+    const buf = await file.arrayBuffer();
+    const text = new TextDecoder(encoding).decode(buf);
+
+    setStatus('Analyse en cours…','info');
+    // Laisser le DOM se mettre à jour avant le traitement lourd
+    await new Promise(r=>setTimeout(r,30));
+
+    const result = analyse(text);
+
+    const typeCount = Object.keys(result.lengths).length;
+    if(typeCount===0){
+      setStatus('Aucun calque PLB trouvé. Vérifier l\'encodage ou les noms de calques.','error'); return;
+    }
+    renderResults(result);
+    setStatus(`Analyse terminée — ${typeCount} réseaux détectés`,'ok');
+  } catch(err){
+    setStatus('Erreur : '+err.message,'error');
+    console.error(err);
+  }
+}
+
+document.getElementById('fileInput').addEventListener('change', e=>{
+  if(e.target.files[0]) handleFile(e.target.files[0]);
+});
+
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e=>{ e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', ()=>dz.classList.remove('over'));
+dz.addEventListener('drop', e=>{ e.preventDefault(); dz.classList.remove('over'); if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+</script>
+</body>
+</html>

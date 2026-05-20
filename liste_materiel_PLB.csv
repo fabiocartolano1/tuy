@@ -1,0 +1,67 @@
+Designation;Type reseau;Matiere;Diametre (mm);Quantite;Unite;Remarque
+Tube MC Ø?;Bouclage sanitaire;MC;?;28.35;m;diametre non detecte
+Coude MC 90° Ø?;Bouclage sanitaire;MC;?;8;u;diametre non detecte
+Te MC Ø?;Bouclage sanitaire;MC;?;3;u;diametre non detecte
+Tube MC Ø50;Bouclage sanitaire;MC;50;0.16;m;
+Coude MC 90° Ø50;Bouclage sanitaire;MC;50;7;u;
+Tube PVC Ø?;Condensats climatisation;PVC;?;50.37;m;diametre non detecte
+Te PVC Ø?;Condensats climatisation;PVC;?;2;u;diametre non detecte
+Tube PVC Ø32;Condensats climatisation;PVC;32;9.18;m;
+Coude PVC 90° Ø32;Condensats climatisation;PVC;32;98;u;
+Croix PVC Ø32;Condensats climatisation;PVC;32;13;u;
+Tube MC Ø?;Eau chaude sanitaire;MC;?;76.78;m;diametre non detecte
+Coude MC 90° Ø?;Eau chaude sanitaire;MC;?;23;u;diametre non detecte
+Te MC Ø?;Eau chaude sanitaire;MC;?;7;u;diametre non detecte
+Croix MC Ø?;Eau chaude sanitaire;MC;?;2;u;diametre non detecte
+Tube MC Ø50;Eau chaude sanitaire;MC;50;0.16;m;
+Coude MC 90° Ø50;Eau chaude sanitaire;MC;50;7;u;
+Tube MC Ø?;Eau froide;MC;?;113.45;m;diametre non detecte
+Coude MC 90° Ø?;Eau froide;MC;?;99;u;diametre non detecte
+Te MC Ø?;Eau froide;MC;?;8;u;diametre non detecte
+Croix MC Ø?;Eau froide;MC;?;3;u;diametre non detecte
+Tube MC Ø50;Eau froide;MC;50;0.16;m;
+Coude MC 90° Ø50;Eau froide;MC;50;7;u;
+Tube MC Ø?;Eau froide sans gel;MC;?;6.08;m;diametre non detecte
+Te MC Ø?;Eau froide sans gel;MC;?;3;u;diametre non detecte
+Tube PVC Ø?;Eaux usees;PVC;?;37.43;m;diametre non detecte
+Coude PVC 87°30 Ø?;Eaux usees;PVC;?;56;u;diametre non detecte
+Tube PVC Ø40;Eaux usees;PVC;40;12.84;m;
+Coude PVC 87°30 Ø40;Eaux usees;PVC;40;68;u;
+Te PVC Ø40;Eaux usees;PVC;40;4;u;
+Croix PVC Ø40;Eaux usees;PVC;40;11;u;
+Tube PVC Ø50;Eaux usees;PVC;50;32.27;m;
+Coude PVC 87°30 Ø50;Eaux usees;PVC;50;152;u;
+Te PVC Ø50;Eaux usees;PVC;50;22;u;
+Croix PVC Ø50;Eaux usees;PVC;50;10;u;
+Tube PVC Ø100;Eaux usees;PVC;100;4.7;m;
+Coude PVC 87°30 Ø100;Eaux usees;PVC;100;30;u;
+Te PVC Ø100;Eaux usees;PVC;100;4;u;
+Croix PVC Ø100;Eaux usees;PVC;100;1;u;
+Tube PVC Ø?;Eaux vannes;PVC;?;5.74;m;diametre non detecte
+Coude PVC 87°30 Ø?;Eaux vannes;PVC;?;12;u;diametre non detecte
+Tube PVC Ø50;Eaux vannes;PVC;50;3.08;m;
+Coude PVC 87°30 Ø50;Eaux vannes;PVC;50;28;u;
+Te PVC Ø50;Eaux vannes;PVC;50;3;u;
+Croix PVC Ø50;Eaux vannes;PVC;50;1;u;
+Tube PVC Ø100;Eaux vannes;PVC;100;23.42;m;
+Coude PVC 87°30 Ø100;Eaux vannes;PVC;100;109;u;
+Te PVC Ø100;Eaux vannes;PVC;100;27;u;
+Croix PVC Ø100;Eaux vannes;PVC;100;19;u;
+Tube PVC Ø?;Eaux vannes (sous dallage);PVC;?;27.79;m;diametre non detecte
+Coude PVC 87°30 Ø?;Eaux vannes (sous dallage);PVC;?;79;u;diametre non detecte
+Te PVC Ø?;Eaux vannes (sous dallage);PVC;?;8;u;diametre non detecte
+Croix PVC Ø?;Eaux vannes (sous dallage);PVC;?;5;u;diametre non detecte
+Tube PVC Ø100;Eaux vannes (sous dallage);PVC;100;319.24;m;
+Coude PVC 87°30 Ø100;Eaux vannes (sous dallage);PVC;100;798;u;
+Te PVC Ø100;Eaux vannes (sous dallage);PVC;100;230;u;
+Croix PVC Ø100;Eaux vannes (sous dallage);PVC;100;218;u;
+Tube PVC Ø110;Eaux vannes (sous dallage);PVC;110;73.5;m;
+Coude PVC 87°30 Ø110;Eaux vannes (sous dallage);PVC;110;278;u;
+Te PVC Ø110;Eaux vannes (sous dallage);PVC;110;95;u;
+Croix PVC Ø110;Eaux vannes (sous dallage);PVC;110;88;u;
+Reduction PVC Ø110;Eaux vannes (sous dallage);PVC;110;1;u;
+Tube PVC Ø?;Ventilation primaire;PVC;?;5.7;m;diametre non detecte
+Coude PVC 87°30 Ø?;Ventilation primaire;PVC;?;8;u;diametre non detecte
+Tube PVC Ø100;Ventilation primaire;PVC;100;3.63;m;
+Coude PVC 87°30 Ø100;Ventilation primaire;PVC;100;21;u;
+Te PVC Ø100;Ventilation primaire;PVC;100;5;u;

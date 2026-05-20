@@ -1,0 +1,11 @@
+Type de tuyau;Matiere;Longueur (m);Nb entites
+Bouclage sanitaire;MC;28.68;37
+Condensats climatisation;PVC;59.55;96
+Eau chaude sanitaire;MC;77.52;117
+Eau froide;MC;114.57;181
+Eau froide sans gel;MC;6.12;10
+Eaux usées;PVC;91.32;248
+Eaux vannes;PVC;33.17;151
+Eaux vannes (sous dallage);PVC;422.93;1799
+Ventilation primaire;PVC;9.33;16
+TOTAL PLB;;843.2;

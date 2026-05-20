@@ -1,0 +1,10 @@
+Type de tuyau;Matiere;Coudes (ARCs);Coudes (changements direction);TOTAL coudes;Diametres (mm)
+Bouclage sanitaire;MC;0;16;16;26
+Condensats climatisation;PVC;0;126;126;32
+Eau chaude sanitaire;MC;1;36;37;16, 26, 32, 40
+Eau froide;MC;1;116;117;16, 20, 26, 32, 40, 63
+Eau froide sans gel;MC;0;4;4;32, 63
+Eaux usees;PVC;12;347;359;40, 50, 100
+Eaux vannes;PVC;7;172;179;50, 100
+Eaux vannes (sous dallage);PVC;109;1175;1284;100
+Ventilation primaire;PVC;0;36;36;100
