@@ -1,9 +1,11 @@
 import csv
+import os
 import ezdxf
 import math
 from collections import defaultdict
 
-doc = ezdxf.readfile("CMT-EXE-RDC.dxf")
+_ROOT = os.path.join(os.path.dirname(__file__), "..")
+doc = ezdxf.readfile(os.path.join(_ROOT, "plans", "CMT-EXE-RDC.dxf"))
 msp = doc.modelspace()
 
 # Mapping calques → type de tuyau
@@ -133,7 +135,7 @@ print(f"{'TOTAL PLB':<35} {'':>8}  {total:>12.2f}")
 print("=" * 75)
 print("Unites : metres ($INSUNITS=6)")
 
-csv_path = "resultats_longueurs_PLB.csv"
+csv_path = os.path.join(_ROOT, "resultats", "resultats_longueurs_PLB.csv")
 with open(csv_path, "w", newline="", encoding="utf-8") as f:
     writer = csv.DictWriter(f, fieldnames=["Type de tuyau", "Matiere", "Longueur (m)", "Nb entites"], delimiter=";")
     writer.writeheader()

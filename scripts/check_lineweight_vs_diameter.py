@@ -3,6 +3,7 @@
 Compare lineweights des tuyaux avec les cercles (coupes) proches
 pour tester si lineweight * echelle = diametre reel.
 """
+import os
 import sys
 import ezdxf
 import math
@@ -10,7 +11,8 @@ from collections import defaultdict
 
 sys.stdout.reconfigure(encoding='utf-8')
 
-doc = ezdxf.readfile("CMT-EXE-RDC.dxf")
+_ROOT = os.path.join(os.path.dirname(__file__), "..")
+doc = ezdxf.readfile(os.path.join(_ROOT, "plans", "CMT-EXE-RDC.dxf"))
 msp = doc.modelspace()
 
 CALQUES_PLB = {

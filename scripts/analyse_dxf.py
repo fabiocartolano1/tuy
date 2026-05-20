@@ -1,7 +1,9 @@
+import os
 import ezdxf
 from collections import defaultdict
 
-doc = ezdxf.readfile("CMT-EXE-RDC.dxf")
+_ROOT = os.path.join(os.path.dirname(__file__), "..")
+doc = ezdxf.readfile(os.path.join(_ROOT, "plans", "CMT-EXE-RDC.dxf"))
 msp = doc.modelspace()
 
 # Calques

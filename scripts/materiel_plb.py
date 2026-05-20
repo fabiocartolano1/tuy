@@ -6,11 +6,13 @@ PVC (EU/EV/VP/Condensats) : diametre par propagation.
 MC  (EF/EC/REC/EFSG)      : diametre non disponible dans ce DXF.
 """
 import csv
+import os
 import ezdxf
 import math
 from collections import defaultdict
 
-doc = ezdxf.readfile("CMT-EXE-RDC.dxf")
+_ROOT = os.path.join(os.path.dirname(__file__), "..")
+doc = ezdxf.readfile(os.path.join(_ROOT, "plans", "CMT-EXE-RDC.dxf"))
 msp = doc.modelspace()
 
 CALQUES_PLB = {
@@ -312,7 +314,7 @@ for key in sorted(longueurs):
                      "Matiere": matiere, "Diametre (mm)": dia or "?",
                      "Quantite": nr, "Unite": "u", "Remarque": rem})
 
-csv_path = "liste_materiel_PLB.csv"
+csv_path = os.path.join(_ROOT, "resultats", "liste_materiel_PLB.csv")
 fields = ["Designation", "Type reseau", "Matiere", "Diametre (mm)", "Quantite", "Unite", "Remarque"]
 with open(csv_path, "w", newline="", encoding="utf-8") as f:
     writer = csv.DictWriter(f, fieldnames=fields, delimiter=";")

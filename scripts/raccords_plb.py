@@ -1,9 +1,11 @@
+import os
 import ezdxf
 import math
 import csv
 from collections import defaultdict
 
-doc = ezdxf.readfile("CMT-EXE-RDC.dxf")
+_ROOT = os.path.join(os.path.dirname(__file__), "..")
+doc = ezdxf.readfile(os.path.join(_ROOT, "plans", "CMT-EXE-RDC.dxf"))
 msp = doc.modelspace()
 
 CALQUES_PLB = {
@@ -168,7 +170,7 @@ for (tp, mat), n in croix.items():
 
 rows.sort(key=lambda r: (r[1], r[0], r[3]))
 
-out = "resultats_raccords_PLB.csv"
+out = os.path.join(_ROOT, "resultats", "resultats_raccords_PLB.csv")
 with open(out, "w", newline="", encoding="utf-8-sig") as f:
     w = csv.writer(f, delimiter=";")
     w.writerow(["Raccord", "Type de tuyau", "Matiere", "Angle", "Quantite"])
